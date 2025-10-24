@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASN SkillVerse</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>ASN SkillVerse</h1>
+    <p class="subtitle">Pelatihan Digital ASN · Badge · Transparansi</p>
+    <nav>
+      <button class="nav-btn" data-section="training">Pelatihan</button>
+      <button class="nav-btn" data-section="badges">Badge</button>
+      <button class="nav-btn" data-section="ledger">Ledger</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Section Pelatihan -->
+    <section id="training" class="content-section active">
+      <h2>📚 Daftar Pelatihan</h2>
+      <div id="training-list" class="card-container"></div>
+    </section>
+
+    <!-- Section Badge -->
+    <section id="badges" class="content-section">
+      <h2>🏅 Badge Saya</h2>
+      <div id="badge-list" class="card-container"></div>
+    </section>
+
+    <!-- Section Ledger -->
+    <section id="ledger" class="content-section">
+      <h2>🔐 Ledger Transparansi</h2>
+      <p>Daftar hash aktivitas terakhir (simulasi lokal):</p>
+      <div id="ledger-log" class="ledger-box"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 ASN SkillVerse · Inisiatif Terbuka Hariyanto</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
