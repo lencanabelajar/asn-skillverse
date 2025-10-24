@@ -1,0 +1,29 @@
+[
+  {
+    "question": "Salah satu manfaat utama penggunaan AI dalam pelayanan publik adalah:",
+    "options": [
+      "Menambah jumlah ASN yang dibutuhkan",
+      "Meningkatkan kecepatan dan efisiensi layanan",
+      "Menggantikan semua keputusan manusia"
+    ],
+    "answer": 1
+  },
+  {
+    "question": "Risiko utama penggunaan AI tanpa pengawasan adalah:",
+    "options": [
+      "Keterbukaan data publik meningkat",
+      "Peningkatan transparansi sistem",
+      "Penyalahgunaan data atau keputusan bias"
+    ],
+    "answer": 2
+  },
+  {
+    "question": "Peran ASN dalam era AI adalah:",
+    "options": [
+      "Memonitor dan memastikan etika penggunaan teknologi",
+      "Menyerahkan semua proses kepada mesin",
+      "Menolak otomatisasi dalam pelayanan"
+    ],
+    "answer": 0
+  }
+]
