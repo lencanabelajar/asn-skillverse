@@ -1,0 +1,194 @@
+/* ==========================
+   ASN SkillVerse - Style
+   Tema: Putih, Merah, Biru
+   ========================== */
+
+:root {
+  --primary-red: #d62828;
+  --primary-blue: #0033a0;
+  --light-blue: #e6ecff;
+  --light-red: #ffeaea;
+  --text-dark: #1a1a1a;
+  --text-muted: #666;
+  --bg-white: #ffffff;
+  --border-color: #e0e0e0;
+  --radius: 10px;
+}
+
+/* Reset dan tata letak dasar */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-white);
+  color: var(--text-dark);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================
+   Header dan Navigasi
+   ========================== */
+header {
+  text-align: center;
+  background: linear-gradient(90deg, var(--primary-blue), var(--primary-red));
+  color: white;
+  padding: 1.5rem 1rem;
+  border-bottom: 5px solid var(--light-blue);
+}
+
+header h1 {
+  font-size: 1.8rem;
+  letter-spacing: 0.5px;
+}
+
+header .subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin-top: 0.25rem;
+}
+
+nav {
+  margin-top: 1rem;
+}
+
+.nav-btn {
+  background: white;
+  color: var(--primary-blue);
+  border: 2px solid var(--primary-blue);
+  border-radius: var(--radius);
+  padding: 0.5rem 1rem;
+  margin: 0.3rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+  background: var(--primary-blue);
+  color: white;
+}
+
+.nav-btn.active {
+  background: var(--primary-red);
+  border-color: var(--primary-red);
+  color: white;
+}
+
+/* ==========================
+   Konten utama
+   ========================== */
+main {
+  flex: 1;
+  padding: 2rem 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.content-section {
+  display: none;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.content-section.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================
+   Kartu dan daftar data
+   ========================== */
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.card {
+  background: var(--light-blue);
+  border: 1px solid var(--border-color);
+  border-left: 5px solid var(--primary-blue);
+  border-radius: var(--radius);
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: scale(1.02);
+  background: var(--bg-white);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+  color: var(--primary-blue);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.card p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.card .points {
+  color: var(--primary-red);
+  font-weight: bold;
+}
+
+/* ==========================
+   Ledger dan log area
+   ========================== */
+.ledger-box {
+  margin-top: 1rem;
+  background: var(--light-red);
+  border: 1px solid var(--primary-red);
+  border-radius: var(--radius);
+  padding: 1rem;
+  font-family: monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* ==========================
+   Footer
+   ========================== */
+footer {
+  background-color: var(--primary-blue);
+  color: white;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.3px;
+}
+
+/* ==========================
+   Responsif
+   ========================== */
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 1.4rem;
+  }
+
+  .nav-btn {
+    padding: 0.4rem 0.8rem;
+    margin: 0.2rem;
+    font-size: 0.9rem;
+  }
+
+  main {
+    padding: 1rem;
+  }
+}
