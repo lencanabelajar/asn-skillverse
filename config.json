@@ -1,0 +1,38 @@
+{
+  "project_name": "ASN SkillVerse",
+  "version": "1.0.0",
+  "mode": "demo", 
+  "description": "Portal pelatihan ASN berbasis web yang mendukung transparansi, badge NFT lokal, dan ledger sederhana.",
+  
+  "backend_ready": false,
+  "api_base": "http://localhost:4000/api",
+
+  "ipfs_enabled": false,
+  "ipfs_gateway": "https://ipfs.io/ipfs/",
+
+  "database": {
+    "type": "sqlite",
+    "path": "./backend/db/skillverse.db"
+  },
+
+  "ledger": {
+    "enabled": true,
+    "source": "./data/ledger-log.json"
+  },
+
+  "colors": {
+    "primary": "#b22222", 
+    "secondary": "#003366",
+    "background": "#ffffff"
+  },
+
+  "authors": [
+    {
+      "name": "Hariyanto",
+      "role": "Developer & Creator",
+      "contact": "https://github.com/hariyantoduit-bit"
+    }
+  ],
+
+  "copyright": "© 2025 ASN SkillVerse Project. Licensed under MIT."
+}
