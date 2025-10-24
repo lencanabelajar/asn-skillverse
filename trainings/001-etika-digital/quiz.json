@@ -1,0 +1,29 @@
+[
+  {
+    "question": "Mengapa ASN harus berhati-hati menggunakan media sosial?",
+    "options": [
+      "Karena bisa memengaruhi citra lembaga dan kepercayaan publik",
+      "Agar mendapatkan lebih banyak pengikut",
+      "Supaya terlihat aktif di dunia digital"
+    ],
+    "answer": 0
+  },
+  {
+    "question": "Langkah paling aman untuk melindungi data publik adalah:",
+    "options": [
+      "Gunakan sandi yang sama untuk semua akun",
+      "Bagikan data hanya kepada pihak berwenang",
+      "Simpan sandi di catatan umum"
+    ],
+    "answer": 1
+  },
+  {
+    "question": "Contoh perilaku tidak etis di ruang digital bagi ASN adalah:",
+    "options": [
+      "Menyebarkan informasi internal tanpa izin",
+      "Menyampaikan edukasi publik",
+      "Berpartisipasi dalam diskusi profesional"
+    ],
+    "answer": 0
+  }
+]
