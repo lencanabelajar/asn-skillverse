@@ -1,0 +1,29 @@
+[
+  {
+    "id": "001-etika-digital",
+    "title": "Etika Digital ASN",
+    "points": 100,
+    "date": "2025-10-10 14:35:00",
+    "issuer": "BKN SkillVerse",
+    "note": "Diselesaikan melalui modul pelatihan etika digital dasar.",
+    "cid": "QmDemoCID123etikaDigital"
+  },
+  {
+    "id": "002-pelayanan-ai",
+    "title": "Pelayanan Publik Ramah AI",
+    "points": 150,
+    "date": "2025-10-12 09:10:00",
+    "issuer": "BKN SkillVerse",
+    "note": "Pelatihan eksperimental tentang pemanfaatan kecerdasan buatan.",
+    "cid": "QmDemoCID456pelayananAI"
+  },
+  {
+    "id": "003-manajemen-waktu",
+    "title": "Manajemen Waktu untuk ASN Produktif",
+    "points": 80,
+    "date": "2025-10-14 16:25:00",
+    "issuer": "BKN SkillVerse",
+    "note": "Modul mandiri mengenai pengelolaan waktu kerja ASN.",
+    "cid": "QmDemoCID789manajemenWaktu"
+  }
+]
