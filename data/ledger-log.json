@@ -1,0 +1,26 @@
+[
+  {
+    "timestamp": "2025-10-10T14:36:05Z",
+    "action": "Pembuatan akun awal ASN SkillVerse",
+    "hash": "b1a1b3c4d7e8f90123abcd456789efab11223344ddeeff009988776655443322",
+    "prevHash": "0"
+  },
+  {
+    "timestamp": "2025-10-10T14:38:42Z",
+    "action": "Selesai pelatihan: Etika Digital ASN",
+    "hash": "9fe231c9a82b7bca11e73e9fd012a6cd88aa112233445566778899aabbccdde0",
+    "prevHash": "b1a1b3c4d7e8f90123abcd456789efab11223344ddeeff009988776655443322"
+  },
+  {
+    "timestamp": "2025-10-12T09:11:21Z",
+    "action": "Selesai pelatihan: Pelayanan Publik Ramah AI",
+    "hash": "ef90123abcd456789ab11223344ddeeff0099887766554433229fe231c9a82b7",
+    "prevHash": "9fe231c9a82b7bca11e73e9fd012a6cd88aa112233445566778899aabbccdde0"
+  },
+  {
+    "timestamp": "2025-10-14T16:26:40Z",
+    "action": "Selesai pelatihan: Manajemen Waktu untuk ASN Produktif",
+    "hash": "33c9a82b7bca11e73e9fd012a6cd889fe231aabbccddeef90123456789ab1122",
+    "prevHash": "ef90123abcd456789ab11223344ddeeff0099887766554433229fe231c9a82b7"
+  }
+]
