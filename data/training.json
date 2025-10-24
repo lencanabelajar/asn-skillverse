@@ -1,0 +1,42 @@
+[
+  {
+    "id": "001-etika-digital",
+    "title": "Etika Digital ASN",
+    "category": "Kedisiplinan",
+    "duration": "2 jam",
+    "points": 100,
+    "description": "Pelatihan dasar mengenai perilaku ASN di ruang digital, termasuk etika bermedia sosial dan keamanan data pribadi."
+  },
+  {
+    "id": "002-pelayanan-ai",
+    "title": "Pelayanan Publik Ramah AI",
+    "category": "Inovasi Pelayanan",
+    "duration": "3 jam",
+    "points": 150,
+    "description": "Mengenal cara AI membantu meningkatkan efektivitas dan transparansi pelayanan publik berbasis digital."
+  },
+  {
+    "id": "003-manajemen-waktu",
+    "title": "Manajemen Waktu untuk ASN Produktif",
+    "category": "Pengembangan Diri",
+    "duration": "1,5 jam",
+    "points": 80,
+    "description": "Teknik mengelola waktu agar kinerja ASN lebih terukur, efisien, dan tidak mudah stres dalam pekerjaan."
+  },
+  {
+    "id": "004-integritas-publik",
+    "title": "Integritas dan Akuntabilitas ASN",
+    "category": "Etika & Tata Nilai",
+    "duration": "2,5 jam",
+    "points": 120,
+    "description": "Memahami pentingnya nilai integritas dan tanggung jawab moral dalam melayani masyarakat secara profesional."
+  },
+  {
+    "id": "005-komunikasi-efektif",
+    "title": "Komunikasi Efektif dan Empatik",
+    "category": "Kepemimpinan",
+    "duration": "2 jam",
+    "points": 90,
+    "description": "Meningkatkan kemampuan komunikasi interpersonal untuk membangun kepercayaan publik dan kolaborasi tim."
+  }
+]
