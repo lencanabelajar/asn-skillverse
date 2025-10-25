@@ -55,6 +55,7 @@ header .subtitle {
 
 nav {
   margin-top: 1rem;
+  text-align: center;        /* menu di tengah */
 }
 
 .nav-btn {
@@ -186,6 +187,12 @@ footer {
     padding: 0.4rem 0.8rem;
     margin: 0.2rem;
     font-size: 0.9rem;
+  }
+
+   nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   main {
