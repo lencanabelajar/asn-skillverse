@@ -1,44 +1,182 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Materi Pelatihan | ASN SkillVerse</title>
-  <link rel="stylesheet" href="style.css">
+
+  <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
   <style>
-    main { max-width: 800px; margin: 2rem auto; padding: 1rem; line-height: 1.6; }
-    main h1, main h2, main h3 { color: var(--primary-blue); margin-top: 1.4rem; }
-    main pre { background: #f4f4f4; padding: 0.5rem; border-radius: 6px; overflow-x:auto; }
-    main code { background: #eee; padding: 2px 4px; border-radius: 4px; }
-    main ul { margin-left: 1.4rem; }
+    body {
+      background: var(--bg-white);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(90deg, var(--primary-blue), var(--primary-red));
+      color: white;
+      text-align: center;
+      padding: 1.8rem 1rem;
+      border-bottom: 4px solid var(--light-blue);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      letter-spacing: 0.4px;
+      margin-bottom: 0.3rem;
+    }
+
+    header .subtitle {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    main {
+      flex: 1;
+      max-width: 850px;
+      width: 90%;
+      margin: 2rem auto;
+      padding: 2rem;
+      border-radius: 12px;
+      background: var(--light-blue);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Markdown content styling */
+    #content {
+      font-family: "Segoe UI", Roboto, sans-serif;
+      color: var(--text-dark);
+      line-height: 1.7;
+    }
+
+    #content h1, #content h2, #content h3 {
+      color: var(--primary-blue);
+      margin-top: 1.6rem;
+      margin-bottom: 0.6rem;
+    }
+
+    #content p {
+      margin-bottom: 1rem;
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    #content strong { color: var(--primary-red); }
+
+    #content ul {
+      margin: 0.8rem 0 1rem 1.4rem;
+      list-style: disc;
+    }
+
+    #content li {
+      margin-bottom: 0.4rem;
+    }
+
+    #content pre {
+      background: #f4f4f4;
+      padding: 0.8rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.9rem;
+    }
+
+    #content code {
+      background: #eee;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    footer {
+      background: var(--primary-blue);
+      color: white;
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.85rem;
+    }
+
+    /* Button back */
+    .back-btn {
+      display: inline-block;
+      background: var(--primary-blue);
+      color: white;
+      padding: 0.5rem 0.9rem;
+      border-radius: var(--radius);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      margin-bottom: 1rem;
+    }
+
+    .back-btn:hover {
+      background: var(--primary-red);
+    }
+
+    /* Loading state */
+    .loading {
+      color: var(--text-muted);
+      text-align: center;
+      padding: 2rem;
+    }
+
+    @media (max-width: 600px) {
+      main {
+        padding: 1.2rem;
+      }
+      #content {
+        font-size: 0.95rem;
+      }
+    }
   </style>
 </head>
+
 <body>
   <header>
     <h1>Materi Pelatihan</h1>
     <div class="subtitle">ASN SkillVerse</div>
   </header>
 
-  <main id="content">Memuat...</main>
+  <main>
+    <a href="index.html" class="back-btn">← Kembali ke Portal</a>
+    <div id="content" class="loading">Memuat materi...</div>
+  </main>
 
-  <footer>© 2025 ASN SkillVerse</footer>
+  <footer>© 2025 ASN SkillVerse. Semua hak cipta dilindungi.</footer>
 
   <script>
     async function loadMateri() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
-      if (!id) return document.getElementById('content').textContent = 'Materi tidak ditemukan.';
+      const content = document.getElementById('content');
+
+      if (!id) {
+        content.textContent = 'Materi tidak ditemukan.';
+        return;
+      }
 
       const url = `trainings/${id}/materi.md`;
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error("File tidak ditemukan");
         const text = await res.text();
-        document.getElementById('content').innerHTML = marked.parse(text);
+        content.innerHTML = marked.parse(text);
+        content.classList.remove('loading');
       } catch (err) {
-        document.getElementById('content').textContent = 'Gagal memuat materi.';
+        content.textContent = 'Gagal memuat materi.';
       }
     }
+
     loadMateri();
   </script>
 </body>
