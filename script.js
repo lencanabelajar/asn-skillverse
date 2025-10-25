@@ -1,133 +1,226 @@
 /* ==========================
-   ASN SkillVerse - Script (updated)
-   Behavior:
-   - "Mulai Pelatihan" -> buka QUIZ
-   - Materi dibuka via tombol "Baca Materi"
-   - Badge & poin diberikan hanya jika lulus quiz
-   - Ledger dicatat saat badge issued
+   ASN SkillVerse - script.js (verbose, full)
+   - Config driven (config.json)
+   - Mode demo (localStorage) or switch to backend via config
+   - Features: training+quiz, materi viewer, badges, shop, clubs, leaderboard, ledger, leveling
    ========================== */
 
-const configPath = "config.json";
-let config = { mode: "demo", backend_ready: false };
+/* ---------- CONFIG ---------- */
+const CONFIG_PATH = "config.json";
+let CONFIG = { mode: "demo", backend_ready: false, api_base: "/api" };
 
-// Elements
+/* ---------- LOCAL STORAGE KEYS ---------- */
+const KEY_USER = "asn_user";
+const KEY_BADGES = "asn_badges";
+const KEY_LEDGER = "asn_ledger";
+
+/* ---------- DEFAULT USER ---------- */
+const DEFAULT_USER = {
+  name: "ASN User",
+  points: 0,
+  xp: 0,
+  level: 1,
+  club: null
+};
+
+/* ---------- DOM ELEMENTS ---------- */
 const navButtons = document.querySelectorAll(".nav-btn");
 const sections = document.querySelectorAll(".content-section");
-const trainingList = document.getElementById("training-list");
-const badgeList = document.getElementById("badge-list");
+const trainingListEl = document.getElementById("training-list");
+const badgeListEl = document.getElementById("badge-list");
 const ledgerBox = document.getElementById("ledger-log");
+const shopListEl = document.getElementById("shop-list");
+const clubListEl = document.getElementById("club-list");
+const leaderboardListEl = document.getElementById("leaderboard-list");
 
-// QUIZ modal container (created dynamically)
 let quizModal = null;
 
-// Init
+/* ---------- INIT ---------- */
 document.addEventListener("DOMContentLoaded", async () => {
   await loadConfig();
+  ensureUser();
   setupNavigation();
-  await loadTraining();
-  await loadBadges();
-  await loadLedger();
+  await refreshAll();
 });
 
-/* ==========================
-   Config & Navigation
-   ========================== */
+/* ---------- HELPERS ---------- */
+
+function logDebug(...args) {
+  // Uncomment to debug
+  // console.debug(...args);
+}
 
 async function loadConfig() {
   try {
-    const res = await fetch(configPath);
-    config = await res.json();
-    console.log("Config loaded:", config);
+    const res = await fetch(CONFIG_PATH);
+    if (res.ok) {
+      CONFIG = await res.json();
+      logDebug("Config loaded", CONFIG);
+    }
   } catch (err) {
-    console.warn("Config not found, using default demo mode.");
+    console.warn("No config.json — using defaults");
   }
 }
+
+function getUser() {
+  try {
+    return JSON.parse(localStorage.getItem(KEY_USER)) || { ...DEFAULT_USER };
+  } catch {
+    return { ...DEFAULT_USER };
+  }
+}
+function saveUser(u) {
+  localStorage.setItem(KEY_USER, JSON.stringify(u));
+}
+
+function getBadges() {
+  try {
+    return JSON.parse(localStorage.getItem(KEY_BADGES)) || null;
+  } catch {
+    return null;
+  }
+}
+function saveBadges(b) {
+  localStorage.setItem(KEY_BADGES, JSON.stringify(b));
+}
+
+function getLedger() {
+  try {
+    return JSON.parse(localStorage.getItem(KEY_LEDGER)) || null;
+  } catch {
+    return null;
+  }
+}
+function saveLedger(l) {
+  localStorage.setItem(KEY_LEDGER, JSON.stringify(l));
+}
+
+function ensureUser() {
+  const u = getUser();
+  if (!u || !u.name) {
+    saveUser({ ...DEFAULT_USER });
+  }
+  // ensure ledger exists too (seed from file will be loaded later)
+  if (!getLedger()) {
+    // do not overwrite file-based ledger here — we'll merge on first read
+    saveLedger(null);
+  }
+}
+
+/* ---------- NAVIGATION ---------- */
 
 function setupNavigation() {
   navButtons.forEach(btn => {
     btn.addEventListener("click", () => {
-      const target = btn.dataset.section;
-      sections.forEach(sec => sec.classList.remove("active"));
-      document.getElementById(target).classList.add("active");
-
+      const section = btn.getAttribute("data-section");
+      // toggle active class
       navButtons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
+      // show/hide sections
+      sections.forEach(s => s.classList.remove("active"));
+      const target = document.getElementById(section);
+      if (target) target.classList.add("active");
+      // some lazy refresh hooks
+      if (section === "badges") loadBadges();
+      if (section === "shop") loadShop();
+      if (section === "clubs") loadClubs();
+      if (section === "leaderboard") loadLeaderboard();
     });
   });
 }
 
-/* ==========================
-   Training list & actions
-   ========================== */
+/* ---------- USER UI & LEVEL ---------- */
+
+function calculateLevelFromXP(xp) {
+  // simple progressive system: each level needs +500xp more (can be tuned)
+  return Math.floor(xp / 500) + 1;
+}
+
+function updateUserStatsUI() {
+  const user = getUser();
+  // derive level from xp
+  user.level = calculateLevelFromXP(user.xp || 0);
+  saveUser(user);
+
+  const nameEl = document.getElementById("user-name");
+  const levelEl = document.getElementById("user-level");
+  const pointsEl = document.getElementById("user-points");
+
+  if (nameEl) nameEl.textContent = user.name;
+  if (levelEl) levelEl.textContent = user.level;
+  if (pointsEl) pointsEl.textContent = user.points;
+}
+
+/* ---------- LOAD / REFRESH ---------- */
+
+async function refreshAll() {
+  updateUserStatsUI();
+  await loadTraining();
+  await loadBadges();
+  await loadShop();
+  await loadClubs();
+  await loadLeaderboard();
+  await loadLedger();
+}
+
+/* ---------- TRAINING (list + click handlers) ---------- */
 
 async function loadTraining() {
   try {
-    // If backend_ready and api available, could fetch /api/training
-    const res = await fetch("data/training.json");
-    const trainings = await res.json();
-    trainingList.innerHTML = "";
+    const trainings = await fetchJSONFlexible("data/training.json", "/training");
+    trainingListEl.innerHTML = "";
+
+    const user = getUser();
 
     trainings.forEach(t => {
+      const locked = t.requires_level && user.level < t.requires_level;
       const card = document.createElement("div");
       card.className = "card";
       card.innerHTML = `
         <h3>${escapeHtml(t.title)}</h3>
-        <p>${escapeHtml(t.description)}</p>
-        <p><strong>Kategori:</strong> ${escapeHtml(t.category)}</p>
-        <p><strong>Durasi:</strong> ${escapeHtml(t.duration)}</p>
-        <p class="points">+${t.points} poin</p>
-        <div style="margin-top:0.8rem;">
-          <button class="start-btn" data-id="${t.id}">Mulai Pelatihan (Quiz)</button>
-          <button class="read-btn" data-id="${t.id}" style="margin-left:0.5rem;">Baca Materi</button>
+        <p style="margin:6px 0;color:${locked ? '#b00020' : '#666'}">${escapeHtml(t.description)}</p>
+        <p><strong>Kategori:</strong> ${escapeHtml(t.category || '-')}</p>
+        <p><strong>Durasi:</strong> ${escapeHtml(t.duration || '-')}</p>
+        <p class="points">+${escapeHtml(String(t.points || 0))} poin</p>
+        <div style="margin-top:0.6rem;">
+          <button class="btn-quiz" ${locked ? 'disabled' : ''} data-id="${t.id}">${locked ? '🔒 Terkunci' : 'Mulai Pelatihan (Quiz)'}</button>
+          <button class="btn-materi" data-id="${t.id}" style="margin-left:8px;">Baca Materi</button>
         </div>
       `;
-      trainingList.appendChild(card);
+      trainingListEl.appendChild(card);
     });
 
-    // Attach event listeners
-    document.querySelectorAll(".start-btn").forEach(btn => {
-      btn.addEventListener("click", e => {
-        const id = e.target.dataset.id;
-        startQuiz(id);
-      });
+    // bind events
+    trainingListEl.querySelectorAll(".btn-materi").forEach(b => {
+      b.addEventListener("click", e => openMateri(e.target.dataset.id));
     });
-    document.querySelectorAll(".read-btn").forEach(btn => {
-      btn.addEventListener("click", e => {
-        const id = e.target.dataset.id;
-        openMateri(id);
-      });
+    trainingListEl.querySelectorAll(".btn-quiz").forEach(b => {
+      b.addEventListener("click", e => startQuiz(e.target.dataset.id));
     });
 
   } catch (err) {
-    trainingList.innerHTML = "<p>Gagal memuat daftar pelatihan.</p>";
+    trainingListEl.innerHTML = "<p>Gagal memuat daftar pelatihan.</p>";
     console.error(err);
   }
 }
 
-/* ==========================
-   Materi handling
-   ========================== */
+/* ---------- MATERI ---------- */
 
 function openMateri(id) {
-  const url = `materi.html?id=${id}`;
-  window.open(url, "_blank");
+  // open materi viewer page (materi.html?id=xxx)
+  window.open(`materi.html?id=${encodeURIComponent(id)}`, "_blank");
 }
 
-
-/* ==========================
-   Quiz flow (modal)
-   ========================== */
+/* ---------- QUIZ (modal) ---------- */
 
 async function startQuiz(id) {
   try {
-    // Load quiz JSON
-    const quizUrl = `trainings/${id}/quiz.json`;
-    const res = await fetch(quizUrl);
-    if (!res.ok) {
-      alert("Quiz tidak ditemukan untuk modul ini.");
+    // fetch quiz
+    const quiz = await fetchJSONFlexible(`trainings/${id}/quiz.json`, `/training/${id}/quiz`);
+    if (!quiz || !Array.isArray(quiz) || quiz.length === 0) {
+      alert("Tidak ada quiz yang tersedia untuk modul ini.");
       return;
     }
-    const quiz = await res.json();
     showQuizModal(id, quiz);
   } catch (err) {
     alert("Gagal memuat quiz.");
@@ -136,165 +229,141 @@ async function startQuiz(id) {
 }
 
 function showQuizModal(id, quiz) {
-  // If modal exists remove it first
   if (quizModal) quizModal.remove();
 
-  // Create modal container
   quizModal = document.createElement("div");
   quizModal.id = "quiz-modal";
   quizModal.style = `
-    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-    display:flex; align-items:center; justify-content:center; z-index:9999;
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    background: rgba(0,0,0,0.5); z-index:9999;
   `;
 
-  // Modal content
-  const content = document.createElement("div");
-  content.style = `
-    width: 90%; max-width:720px; max-height:85vh; overflow:auto;
-    background: white; padding: 1.2rem; border-radius: 12px;
+  const box = document.createElement("div");
+  box.style = `
+    width: 95%; max-width:820px; max-height:85vh; overflow:auto;
+    background:#fff; padding:16px; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.12);
   `;
 
-  // Header
   const header = document.createElement("div");
-  header.innerHTML = `<h3 style="margin-bottom:6px;">Quiz: ${escapeHtml(id)}</h3>
-                      <p style="color:#666;margin-top:0;font-size:0.95rem;">Jawab pertanyaan berikut. Nilai kelulusan 70%.</p>`;
+  header.innerHTML = `<h3 style="margin:0 0 6px 0;">Quiz: ${escapeHtml(id)}</h3>
+                      <p style="margin:0 0 12px 0;color:#666">Jawablah pertanyaan berikut. Nilai minimal 70% untuk lulus.</p>`;
 
-  // Questions
   const form = document.createElement("form");
   form.id = "quiz-form";
+
   quiz.forEach((q, i) => {
     const qWrap = document.createElement("div");
-    qWrap.style = "margin: 12px 0; padding:8px; border-radius:8px; border:1px solid #eee;";
-
-    const qTitle = document.createElement("div");
-    qTitle.innerHTML = `<strong>${i + 1}. ${escapeHtml(q.question)}</strong>`;
-    qWrap.appendChild(qTitle);
-
+    qWrap.style = "padding:10px;border-radius:8px;border:1px solid #eee;margin-bottom:10px;";
+    qWrap.innerHTML = `<strong>${i + 1}. ${escapeHtml(q.question)}</strong>`;
     const opts = document.createElement("div");
     opts.style = "margin-top:8px;";
     q.options.forEach((opt, j) => {
-      const idRadio = `q_${i}_opt_${j}`;
+      const rid = `q_${i}_${j}_${Date.now()}`; // unique
       const label = document.createElement("label");
-      label.style = "display:block; margin-bottom:6px; cursor:pointer;";
-      label.innerHTML = `<input type="radio" name="q_${i}" value="${j}" id="${idRadio}" /> ${escapeHtml(opt)}`;
+      label.style = "display:block;margin-bottom:6px;cursor:pointer;";
+      label.innerHTML = `<input type="radio" name="q_${i}" value="${j}" id="${rid}" /> ${escapeHtml(opt)}`;
       opts.appendChild(label);
     });
     qWrap.appendChild(opts);
     form.appendChild(qWrap);
   });
 
-  // Buttons
-  const btnRow = document.createElement("div");
-  btnRow.style = "display:flex; gap:8px; margin-top:10px; justify-content:flex-end;";
-  const btnCancel = document.createElement("button");
-  btnCancel.type = "button";
-  btnCancel.textContent = "Batal";
-  btnCancel.style = "padding:0.5rem 0.8rem; border-radius:8px;";
-  btnCancel.onclick = () => quizModal.remove();
+  const footer = document.createElement("div");
+  footer.style = "display:flex;gap:10px;justify-content:flex-end;margin-top:8px";
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.textContent = "Batal";
+  cancelBtn.onclick = () => quizModal.remove();
 
-  const btnSubmit = document.createElement("button");
-  btnSubmit.type = "button";
-  btnSubmit.textContent = "Kirim Jawaban";
-  btnSubmit.style = "padding:0.5rem 0.9rem; border-radius:8px; background: #0033a0; color:white; border:none;";
-  btnSubmit.onclick = async () => {
+  const submitBtn = document.createElement("button");
+  submitBtn.type = "button";
+  submitBtn.textContent = "Kirim Jawaban";
+  submitBtn.style = "background:#0033a0;color:white;padding:8px 12px;border-radius:8px;border:none;";
+  submitBtn.onclick = async () => {
     await submitQuiz(id, quiz, form);
   };
 
-  btnRow.appendChild(btnCancel);
-  btnRow.appendChild(btnSubmit);
+  footer.appendChild(cancelBtn);
+  footer.appendChild(submitBtn);
 
-  content.appendChild(header);
-  content.appendChild(form);
-  content.appendChild(btnRow);
-  quizModal.appendChild(content);
+  box.appendChild(header);
+  box.appendChild(form);
+  box.appendChild(footer);
+  quizModal.appendChild(box);
   document.body.appendChild(quizModal);
 }
 
-/* ==========================
-   Submit quiz & grading
-   ========================== */
-
 async function submitQuiz(id, quiz, form) {
-  // Collect answers and compute score
+  // scoring
   let correct = 0;
-  for (let i = 0; i < quiz.length; i++) {
+  quiz.forEach((q, i) => {
     const el = form.querySelector(`input[name="q_${i}"]:checked`);
     const val = el ? parseInt(el.value, 10) : null;
-    if (val === quiz[i].answer) correct++;
-  }
+    if (val === q.answer) correct++;
+  });
   const total = quiz.length;
   const score = total ? Math.round((correct / total) * 100) : 0;
+  const pass = score >= 70;
 
-  // Decide pass threshold
-  const passThreshold = 70;
-  const passed = score >= passThreshold;
+  alert(`Skor: ${score}% (${correct}/${total}) — ${pass ? "LULUS" : "TIDAK LULUS"}`);
 
-  // Show result
-  alert(`Skor: ${score}% (${correct}/${total}) — ${passed ? 'LULUS' : 'TIDAK LULUS'}`);
-
-  if (passed) {
-    // Issue badge only if user hasn't received it
+  if (pass) {
     await issueBadgeAfterQuiz(id);
   } else {
-    // Offer to read materi
-    if (confirm("Belum lulus. Mau buka materi untuk belajar lagi?")) {
+    if (confirm("Belum lulus. Buka materi untuk belajar lagi?")) {
       openMateri(id);
     }
   }
 
-  // Close modal
   if (quizModal) quizModal.remove();
 }
 
-/* ==========================
-   Badge issuing (localStorage + ledger)
-   ========================== */
+/* ---------- BADGE ISSUE ---------- */
 
 async function issueBadgeAfterQuiz(id) {
   try {
-    // get training info
-    const res = await fetch("data/training.json");
-    const trainings = await res.json();
-    const found = trainings.find(t => t.id === id);
-    if (!found) {
+    const trainings = await fetchJSONFlexible("data/training.json", "/training");
+    const t = trainings.find(x => x.id === id);
+    if (!t) {
       alert("Data modul tidak ditemukan.");
       return;
     }
 
-    // check existing badge
-    const badges = JSON.parse(localStorage.getItem("asn_badges") || "[]");
+    const badges = JSON.parse(localStorage.getItem(KEY_BADGES) || "[]");
     if (badges.some(b => b.id === id)) {
-      alert("Kamu sudah memiliki badge ini.");
+      alert("Badge sudah pernah diterbitkan untukmu.");
       return;
     }
 
-    // create badge object
     const newBadge = {
-      id: found.id,
-      title: found.title,
-      points: found.points,
+      id: t.id,
+      title: t.title,
+      points: t.points || 0,
       date: new Date().toLocaleString(),
-      issuer: found.author || "ASN SkillVerse",
-      cid: null // will be set when IPFS integrated
+      issuer: t.author || "ASN SkillVerse",
+      cid: null
     };
 
-    // Save to localStorage
     badges.push(newBadge);
-    localStorage.setItem("asn_badges", JSON.stringify(badges));
+    saveBadges(badges);
 
-    // Update user points (simple counter in localStorage)
-    const user = JSON.parse(localStorage.getItem("asn_user") || JSON.stringify({ name: "ASN User", points: 0 }));
-    user.points = (user.points || 0) + (found.points || 0);
-    localStorage.setItem("asn_user", JSON.stringify(user));
+    // update user points & xp & level
+    const u = getUser();
+    u.points = (u.points || 0) + (t.points || 0);
+    u.xp = (u.xp || 0) + (t.points || 0);
+    u.level = calculateLevelFromXP(u.xp || 0);
+    saveUser(u);
+    updateUserStatsUI();
 
-    // Add ledger entry (simulate)
-    await logToLedger(`ISSUE_BADGE: ${found.title}`);
+    // ledger
+    await logToLedger(`ISSUE_BADGE:${t.id}:${t.title}`);
 
-    alert(`Selamat! Badge "${found.title}" diterbitkan. Poin +${found.points}`);
+    // feedback
+    alert(`Selamat! Badge "${t.title}" diterbitkan. Poin +${t.points || 0}`);
 
-    // Refresh badge list
+    // refresh badges ui
     await loadBadges();
-    // Optionally switch to Badge tab
+    // switch to badges tab
     document.querySelector('[data-section="badges"]').click();
 
   } catch (err) {
@@ -303,122 +372,293 @@ async function issueBadgeAfterQuiz(id) {
   }
 }
 
-/* ==========================
-   Badges UI
-   ========================== */
+/* ---------- BADGES UI ---------- */
 
 async function loadBadges() {
-  // Prefer localStorage (user badges) else show sample data
-  const stored = JSON.parse(localStorage.getItem("asn_badges") || "null");
-  let badgesData = stored;
-  if (!stored) {
+  // prefer localStorage (user badges)
+  let badges = JSON.parse(localStorage.getItem(KEY_BADGES) || "null");
+  if (!badges) {
     try {
       const res = await fetch("data/badges.json");
-      if (res.ok) badgesData = await res.json();
-      else badgesData = [];
+      if (res.ok) badges = await res.json();
+      else badges = [];
     } catch {
-      badgesData = [];
+      badges = [];
     }
   }
-  badgeList.innerHTML = "";
-
-  if (!badgesData || badgesData.length === 0) {
-    badgeList.innerHTML = "<p>Belum ada badge. Selesaikan pelatihan untuk mendapatkannya.</p>";
+  badgeListEl.innerHTML = "";
+  if (!badges || badges.length === 0) {
+    badgeListEl.innerHTML = "<p>Belum ada badge.</p>";
     return;
   }
 
-  badgesData.forEach(b => {
+  badges.forEach(b => {
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
       <h3>${escapeHtml(b.title)}</h3>
       <img src="trainings/${b.id}/badge.png" alt="badge" width="80" style="margin:8px 0;" onerror="this.style.display='none'"/>
       <p><strong>Diperoleh:</strong> ${escapeHtml(b.date || b.issued_at || '-')}</p>
-      <p class="points">+${escapeHtml(String(b.points))} poin</p>
+      <p class="points">+${escapeHtml(String(b.points || 0))} poin</p>
       <p style="font-size:0.85rem;color:#666;margin-top:6px;">${escapeHtml(b.note || b.issuer || '')}</p>
     `;
-    badgeList.appendChild(card);
+    badgeListEl.appendChild(card);
   });
 }
 
-/* ==========================
-   Ledger (demo mode)
-   ========================== */
+/* ---------- LEDGER (hash chaining, demo) ---------- */
 
 async function loadLedger() {
   try {
-    // If user has local ledger (from actions), prefer that
-    const local = JSON.parse(localStorage.getItem("asn_ledger") || "null");
-    if (local) {
+    // prefer localStorage if present (we allow ledger persistence)
+    const local = getLedger();
+    if (local && Array.isArray(local)) {
       renderLedger(local);
       return;
     }
-
+    // else load from data file
     const res = await fetch("data/ledger-log.json");
-    const ledger = await res.json();
-    renderLedger(ledger);
-  } catch {
-    ledgerBox.textContent = "Belum ada log transparansi.";
+    if (!res.ok) {
+      ledgerBox.textContent = "Belum ada ledger.";
+      return;
+    }
+    const base = await res.json();
+    // store a copy in local storage so subsequent updates append
+    saveLedger(base);
+    renderLedger(base);
+  } catch (err) {
+    console.error("loadLedger error", err);
+    ledgerBox.textContent = "Gagal memuat ledger.";
   }
 }
 
-function renderLedger(ledger) {
+function renderLedger(ledgerArr) {
   ledgerBox.innerHTML = "";
-  ledger.slice().reverse().forEach((entry, idx) => {
-    const block = `
-[${ledger.length - idx}] ${entry.timestamp}
+  ledgerArr.slice().reverse().forEach((entry, idx) => {
+    ledgerBox.innerHTML += `
+[${ledgerArr.length - idx}] ${entry.timestamp}
 Aksi: ${entry.action}
 Hash: ${entry.hash}
 Prev: ${entry.prevHash}
 ------------------------------
 `;
-    ledgerBox.innerHTML += block;
   });
 }
 
 async function logToLedger(action) {
   try {
-    // Load current ledger (either from data file or localStorage)
-    const res = await fetch("data/ledger-log.json").catch(() => null);
-    const base = res && res.ok ? await res.json() : [];
-    const local = JSON.parse(localStorage.getItem("asn_ledger") || "null");
-    const ledger = local ? local : base;
-
-    const prev = ledger.length ? ledger[ledger.length - 1].hash : "0";
+    // read current ledger (merge from data if necessary)
+    let ledgerArr = getLedger();
+    if (!ledgerArr || !Array.isArray(ledgerArr)) {
+      try {
+        const res = await fetch("data/ledger-log.json");
+        ledgerArr = res.ok ? await res.json() : [];
+      } catch {
+        ledgerArr = [];
+      }
+    }
+    const prev = ledgerArr.length ? ledgerArr[ledgerArr.length - 1].hash : "0";
     const hash = await generateHash(action + prev + Date.now());
-
-    const newEntry = {
+    const entry = {
       timestamp: new Date().toISOString(),
       action,
       hash,
       prevHash: prev
     };
-
-    ledger.push(newEntry);
-    localStorage.setItem("asn_ledger", JSON.stringify(ledger));
-    renderLedger(ledger);
-
-    return newEntry;
+    ledgerArr.push(entry);
+    saveLedger(ledgerArr);
+    renderLedger(ledgerArr);
+    return entry;
   } catch (err) {
-    console.error("Ledger update failed:", err);
+    console.error("logToLedger error", err);
     return null;
   }
 }
 
 async function generateHash(text) {
-  const msgBuffer = new TextEncoder().encode(text);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+  const enc = new TextEncoder();
+  const buf = enc.encode(text);
+  const hashBuf = await crypto.subtle.digest("SHA-256", buf);
+  const arr = Array.from(new Uint8Array(hashBuf));
+  return arr.map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-/* ==========================
-   Utility
-   ========================== */
+/* ---------- SHOP (redeem) ---------- */
 
-function escapeHtml(str) {
-  if (!str && str !== 0) return "";
-  return String(str)
+async function loadShop() {
+  try {
+    const items = await fetchJSONFlexible("data/shop.json", "/shop");
+    shopListEl.innerHTML = "";
+    const user = getUser();
+
+    items.forEach(it => {
+      const affordable = user.points >= (it.price || 0);
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <h3>${escapeHtml(it.name)}</h3>
+        <img src="${escapeHtml(it.image || '')}" alt="${escapeHtml(it.name)}" width="90" style="margin:8px 0;" onerror="this.style.display='none'"/>
+        <p style="color:#666">${escapeHtml(it.description)}</p>
+        <p class="points">${escapeHtml(String(it.price))} poin</p>
+        <div style="margin-top:8px;">
+          <button class="btn-buy" ${affordable ? '' : 'disabled'} data-id="${it.id}" data-price="${it.price}">${affordable ? 'Tukar' : 'Poin Kurang'}</button>
+        </div>
+      `;
+      shopListEl.appendChild(card);
+    });
+
+    shopListEl.querySelectorAll(".btn-buy").forEach(b => {
+      b.addEventListener("click", async e => {
+        const id = e.target.dataset.id;
+        const price = parseInt(e.target.dataset.price, 10) || 0;
+        await buyItem(id, price);
+      });
+    });
+
+  } catch (err) {
+    console.error("loadShop err", err);
+    shopListEl.innerHTML = "<p>Gagal memuat shop.</p>";
+  }
+}
+
+async function buyItem(id, price) {
+  const user = getUser();
+  if (user.points < price) {
+    alert("Poin tidak cukup.");
+    return;
+  }
+  if (!confirm(`Tukar item seharga ${price} poin?`)) return;
+
+  user.points -= price;
+  // xp unaffected by shop
+  saveUser(user);
+  updateUserStatsUI();
+  await logToLedger(`REDEEM:${id}:${price}`);
+  alert("Transaksi berhasil. Item virtual ditukar.");
+  await loadShop();
+}
+
+/* ---------- CLUBS (join, scoring) ---------- */
+
+async function loadClubs() {
+  try {
+    const clubs = await fetchJSONFlexible("data/clubs.json", "/clubs");
+    clubListEl.innerHTML = "";
+    const user = getUser();
+
+    clubs.forEach(club => {
+      const joined = user.club === club.id;
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <h3>${escapeHtml(club.name)}</h3>
+        <p style="color:#666">${escapeHtml(club.description)}</p>
+        <p>Anggota: ${escapeHtml(String(club.members || 0))} · Poin klub: ${escapeHtml(String(club.points || 0))}</p>
+        <div style="margin-top:8px;">
+          <button class="btn-join" data-id="${club.id}" ${joined ? 'disabled' : ''}>${joined ? 'Sudah Bergabung' : 'Gabung Klub'}</button>
+        </div>
+      `;
+      clubListEl.appendChild(card);
+    });
+
+    clubListEl.querySelectorAll(".btn-join").forEach(b => {
+      b.addEventListener("click", async e => {
+        const clubId = e.target.dataset.id;
+        const u = getUser();
+        u.club = clubId;
+        saveUser(u);
+        updateUserStatsUI();
+        await logToLedger(`JOIN_CLUB:${clubId}`);
+        alert(`Kamu berhasil bergabung ke klub ${clubId}`);
+        await loadClubs();
+      });
+    });
+
+  } catch (err) {
+    console.error("loadClubs err", err);
+    clubListEl.innerHTML = "<p>Gagal memuat klub.</p>";
+  }
+}
+
+/* ---------- LEADERBOARD ---------- */
+
+async function loadLeaderboard() {
+  try {
+    const clubs = await fetchJSONFlexible("data/clubs.json", "/clubs");
+    const user = getUser();
+
+    // users ranking: we'll use sample users + current user (extendable later)
+    const sampleUsers = [
+      { name: "Andi", points: 950 },
+      { name: "Sinta", points: 820 },
+      { name: "Budi", points: 780 }
+    ];
+    sampleUsers.push({ name: user.name, points: user.points });
+
+    const usersSorted = sampleUsers.sort((a, b) => b.points - a.points);
+
+    // clubs ranking: from data
+    const clubsSorted = (clubs || []).slice().sort((a, b) => (b.points || 0) - (a.points || 0));
+
+    // render
+    leaderboardListEl.innerHTML = "";
+
+    // users
+    const usersCard = document.createElement("div");
+    usersCard.className = "card";
+    usersCard.innerHTML = `<h3>Top ASN</h3>`;
+    usersSorted.forEach((u, idx) => {
+      usersCard.innerHTML += `<p>#${idx + 1} ${escapeHtml(u.name)} — ${escapeHtml(String(u.points))} poin</p>`;
+    });
+    leaderboardListEl.appendChild(usersCard);
+
+    // clubs
+    const clubsCard = document.createElement("div");
+    clubsCard.className = "card";
+    clubsCard.innerHTML = `<h3>Top Klub</h3>`;
+    clubsSorted.forEach((c, idx) => {
+      clubsCard.innerHTML += `<p>#${idx + 1} ${escapeHtml(c.name)} — ${escapeHtml(String(c.points || 0))} poin</p>`;
+    });
+    leaderboardListEl.appendChild(clubsCard);
+
+  } catch (err) {
+    console.error("loadLeaderboard err", err);
+    leaderboardListEl.innerHTML = "<p>Gagal memuat leaderboard.</p>";
+  }
+}
+
+/* ---------- UTIL: fetchJSONFlexible ---------- */
+/* Tries local file first, then optional backend route if CONFIG.backend_ready true.
+   This keeps frontend working on GitHub Pages (demo) and switchable to backend later. */
+async function fetchJSONFlexible(localPath, apiRoute = "") {
+  // prefer local (demo) mode
+  if (!CONFIG.backend_ready) {
+    const res = await fetch(localPath);
+    if (res.ok) return await res.json();
+    throw new Error(`Local resource not found: ${localPath}`);
+  } else {
+    // attempt API fetch
+    try {
+      const apiUrl = (CONFIG.api_base || "").replace(/\/$/, "") + apiRoute;
+      const res = await fetch(apiUrl);
+      if (res.ok) return await res.json();
+      // fallback to local if available
+      const res2 = await fetch(localPath);
+      if (res2.ok) return await res2.json();
+      throw new Error("No data");
+    } catch (err) {
+      console.warn("fetchJSONFlexible fallback to local", err);
+      const res2 = await fetch(localPath);
+      if (res2.ok) return await res2.json();
+      throw err;
+    }
+  }
+}
+
+/* ---------- UTIL: escapeHtml ---------- */
+function escapeHtml(s) {
+  if (s === null || s === undefined) return "";
+  return String(s)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
