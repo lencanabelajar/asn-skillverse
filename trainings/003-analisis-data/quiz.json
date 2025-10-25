@@ -1,0 +1,29 @@
+[
+  {
+    "question": "Mengapa analisis data penting bagi ASN?",
+    "options": [
+      "Untuk mempercantik laporan saja",
+      "Untuk mendukung keputusan berbasis bukti",
+      "Agar terlihat modern di media sosial"
+    ],
+    "answer": 1
+  },
+  {
+    "question": "Alat apa yang bisa digunakan untuk analisis data kuantitatif?",
+    "options": [
+      "MS Paint",
+      "Python atau R",
+      "Google Docs"
+    ],
+    "answer": 1
+  },
+  {
+    "question": "Apa yang termasuk etika penggunaan data publik?",
+    "options": [
+      "Menyebarkan data pribadi tanpa izin",
+      "Menggunakan data untuk menyudutkan pihak lain",
+      "Menjaga privasi dan menjelaskan konteks"
+    ],
+    "answer": 2
+  }
+]
