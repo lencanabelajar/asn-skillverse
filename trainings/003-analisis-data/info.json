@@ -1,0 +1,14 @@
+{
+  "id": "003-analisis-data",
+  "title": "Analisis Data Lanjutan",
+  "category": "Inovasi & Statistik",
+  "level": "Lanjutan",
+  "duration": "3 jam",
+  "author": "BKN SkillVerse",
+  "points": 200,
+  "requires_level": 3,
+  "description": "Pelatihan ini memperkenalkan teknik analisis data lanjutan untuk mendukung kebijakan berbasis bukti.",
+  "thumbnail": "badge.png",
+  "version": "1.0",
+  "last_update": "2025-10-25"
+}
