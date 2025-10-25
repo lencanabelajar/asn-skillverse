@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Materi Pelatihan | ASN SkillVerse</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    main { max-width: 800px; margin: 2rem auto; padding: 1rem; line-height: 1.6; }
+    main h1, main h2, main h3 { color: var(--primary-blue); margin-top: 1.4rem; }
+    main pre { background: #f4f4f4; padding: 0.5rem; border-radius: 6px; overflow-x:auto; }
+    main code { background: #eee; padding: 2px 4px; border-radius: 4px; }
+    main ul { margin-left: 1.4rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Materi Pelatihan</h1>
+    <div class="subtitle">ASN SkillVerse</div>
+  </header>
+
+  <main id="content">Memuat...</main>
+
+  <footer>© 2025 ASN SkillVerse</footer>
+
+  <script>
+    async function loadMateri() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      if (!id) return document.getElementById('content').textContent = 'Materi tidak ditemukan.';
+
+      const url = `trainings/${id}/materi.md`;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("File tidak ditemukan");
+        const text = await res.text();
+        document.getElementById('content').innerHTML = marked.parse(text);
+      } catch (err) {
+        document.getElementById('content').textContent = 'Gagal memuat materi.';
+      }
+    }
+    loadMateri();
+  </script>
+</body>
+</html>
