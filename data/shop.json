@@ -1,0 +1,23 @@
+[
+  {
+    "id": "001-mug-bkn",
+    "name": "Mug ASN SkillVerse",
+    "description": "Cangkir digital simbol semangat belajar ASN.",
+    "price": 200,
+    "image": "https://via.placeholder.com/120?text=Mug"
+  },
+  {
+    "id": "002-pin-merit",
+    "name": "Pin Merit Badge",
+    "description": "Pin virtual untuk ASN berprestasi di liga pelatihan.",
+    "price": 300,
+    "image": "https://via.placeholder.com/120?text=Pin"
+  },
+  {
+    "id": "003-voucher-kopi",
+    "name": "Voucher Kopi Virtual",
+    "description": "Satu cangkir kopi imajiner untuk semangat bekerja.",
+    "price": 100,
+    "image": "https://via.placeholder.com/120?text=Kopi"
+  }
+]
