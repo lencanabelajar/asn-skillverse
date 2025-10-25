@@ -1,0 +1,23 @@
+[
+  {
+    "id": "ai-squad",
+    "name": "AI Squad",
+    "description": "Klub pecinta teknologi kecerdasan buatan di lingkungan ASN.",
+    "members": 12,
+    "points": 2850
+  },
+  {
+    "id": "pelayan-prima",
+    "name": "Pelayan Prima",
+    "description": "Klub fokus pada pelayanan publik dan inovasi kerja nyata.",
+    "members": 9,
+    "points": 2420
+  },
+  {
+    "id": "data-champs",
+    "name": "Data Champs",
+    "description": "Klub analis data dan statistik ASN untuk pengambilan keputusan berbasis bukti.",
+    "members": 7,
+    "points": 2100
+  }
+]
