@@ -109,10 +109,10 @@ async function loadTraining() {
    ========================== */
 
 function openMateri(id) {
-  // Open materi.md in new tab (raw file on GitHub Pages)
-  const url = `trainings/${id}/materi.md`;
+  const url = `materi.html?id=${id}`;
   window.open(url, "_blank");
 }
+
 
 /* ==========================
    Quiz flow (modal)
