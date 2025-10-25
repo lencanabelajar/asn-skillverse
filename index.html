@@ -6,40 +6,73 @@
   <title>ASN SkillVerse</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <header>
     <h1>ASN SkillVerse</h1>
-    <p class="subtitle">Pelatihan Digital ASN · Badge · Transparansi</p>
-    <nav>
-      <button class="nav-btn" data-section="training">Pelatihan</button>
-      <button class="nav-btn" data-section="badges">Badge</button>
-      <button class="nav-btn" data-section="ledger">Ledger</button>
-    </nav>
+    <div class="subtitle">Portal Pelatihan ASN Cerdas dan Transparan</div>
+    <div id="user-stats" class="user-stats">
+      <span id="user-name">ASN User</span> · 
+      Level <span id="user-level">1</span> · 
+      <span id="user-points">0</span> poin
+    </div>
   </header>
 
+  <nav>
+    <button class="nav-btn active" data-section="training">Pelatihan</button>
+    <button class="nav-btn" data-section="badges">Badge</button>
+    <button class="nav-btn" data-section="shop">Shop</button>
+    <button class="nav-btn" data-section="clubs">Klub</button>
+    <button class="nav-btn" data-section="leaderboard">Leaderboard</button>
+    <button class="nav-btn" data-section="ledger">Ledger</button>
+  </nav>
+
   <main>
-    <!-- Section Pelatihan -->
+    <!-- PELATIHAN -->
     <section id="training" class="content-section active">
-      <h2>📚 Daftar Pelatihan</h2>
+      <h2>Pelatihan</h2>
+      <p>Pilih modul untuk meningkatkan kemampuanmu sebagai ASN modern.</p>
       <div id="training-list" class="card-container"></div>
     </section>
 
-    <!-- Section Badge -->
+    <!-- BADGES -->
     <section id="badges" class="content-section">
-      <h2>🏅 Badge Saya</h2>
+      <h2>Badge Saya</h2>
+      <p>Lihat pencapaianmu dari pelatihan yang sudah diselesaikan.</p>
       <div id="badge-list" class="card-container"></div>
     </section>
 
-    <!-- Section Ledger -->
+    <!-- SHOP -->
+    <section id="shop" class="content-section">
+      <h2>Shop Poin ASN</h2>
+      <p>Gunakan poin untuk menukar hadiah simbolik atau akses fitur khusus.</p>
+      <div id="shop-list" class="card-container"></div>
+    </section>
+
+    <!-- KLUB -->
+    <section id="clubs" class="content-section">
+      <h2>Klub & Liga ASN</h2>
+      <p>Bergabunglah dengan komunitas belajar untuk menaikkan skor bersama!</p>
+      <div id="club-list" class="card-container"></div>
+    </section>
+
+    <!-- LEADERBOARD -->
+    <section id="leaderboard" class="content-section">
+      <h2>Leaderboard</h2>
+      <p>Peringkat individu dan klub terbaik berdasarkan poin dan kontribusi.</p>
+      <div id="leaderboard-list" class="card-container"></div>
+    </section>
+
+    <!-- LEDGER -->
     <section id="ledger" class="content-section">
-      <h2>🔐 Ledger Transparansi</h2>
-      <p>Daftar hash aktivitas terakhir (simulasi lokal):</p>
+      <h2>Ledger Transparansi</h2>
+      <p>Catatan semua aktivitas poin dan badge.</p>
       <div id="ledger-log" class="ledger-box"></div>
     </section>
   </main>
 
   <footer>
-    <p>© 2025 ASN SkillVerse · Inisiatif Terbuka Hariyanto</p>
+    © 2025 ASN SkillVerse · Dibangun dengan integritas dan semangat belajar
   </footer>
 
   <script src="script.js"></script>
